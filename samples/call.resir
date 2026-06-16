@@ -1,0 +1,15 @@
+function Client::sum_abs_diffs(%a: i32, %b: i32,
+                               %c: i32, %d: i32) -> i32 {
+    locals {
+        %dx : i32;
+        %dy : i32;
+        %r  : i32;
+    }
+    entry bb0;
+
+    bb0:
+        %dx = call Math::abs_diff(%a, %b);
+        %dy = call Math::abs_diff(%c, %d);
+        %r  = bin add %dx, %dy;
+        return %r;
+}
