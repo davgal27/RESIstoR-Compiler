@@ -67,7 +67,7 @@ pub fn state_to_token(state: State) -> Option<TokenKind> {
     })
 }
 
-// coloumns: Character Categories
+// coloumns: Character Categories (edges in the automaton)
 #[derive(Copy, Clone, PartialEq)]
 pub enum Cat {
 	Letter,

@@ -4,7 +4,7 @@
 // above is so I can remember thought process when I inevitably forget how I did it in 2 days :) 
 
 pub struct Program {
-	pub externtype: Vec<ExternType>, 
+	pub externtype: Vec<ExternType>,  //custom type that the function references must be declared at the top of the file
 	pub function: Function,
 }
 pub struct ExternType {
@@ -20,8 +20,8 @@ pub struct Function {
 	pub params: Option<Params>, // [] is optional for EBNF
 	pub rettype: RetType,
 	pub locals: Vec<(Local, Type)>,
-	pub entry: Label,
-	pub block: Vec<(Block)>,
+	pub entry: Label, // label for the entry block
+	pub block: Vec<(Block)>, // entry block + zero or more additional blocks (hence vec)
 }
 pub struct Params {
 	pub params: Vec<(Param)>,
@@ -34,9 +34,9 @@ pub enum RetType {
 	typealt(Type)
 }
 pub struct Block {
-	pub label: Label,
+	pub label: Label, // when Label matches entry, it is the entry block
 	pub stmt: Vec<Stmt>,
-	pub term: Term,	
+	pub term: Term,	// every block ends with exactly one terminator
 }
 pub struct Stmt {
 	pub local: Option<Local>,
@@ -49,7 +49,7 @@ pub enum Rhs {
 	Un(UnOp, Local),
 	Bin(BinOp, Local, Local),
 	Addr_of(Local),
-	Member_ptr(Local, Ident),
+	Member_ptr(Local, Ident), // %ident(string)/ident(string): eg: member_ptr %p, x 
 	Load(Local),
 	Store(Local, Local),
 	Call(Path, Option<Args>),	
@@ -58,8 +58,8 @@ pub struct Args{
 	pub locals: Vec<(Local)>,
 }
 pub enum Term{
-	Jump(Label),
-	CJump(Local, Label, Label),
+	Jump(Label), // name of block to jump to
+	CJump(Local, Label, Label), //local is the condition. Label1 = case true, else label2
 	Return(Option<Local>),
 }
 pub enum Type{
@@ -78,10 +78,10 @@ pub struct Path{
 	pub ident: Vec<(Ident)>,
 }
 pub struct Local{
-	pub ident: Ident,
+	pub ident: Ident, // eg %p 
 }
 pub struct Label {
-	pub digit: Vec<(Digit)>,
+	pub digit: Vec<(Digit)>, //3 will produce bb3 
 }
 pub enum Literal{
 	IntegerLiteral(i64), 
@@ -110,10 +110,10 @@ pub enum BinOp{
 	Or,
 }
 pub struct Ident{
-	pub string: String,
+	pub string: String, //variable name like x p or is_neg
 }
 pub struct Digit{
-	pub digit: u8,
+	pub digit: u32,
 }
 
 
