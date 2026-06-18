@@ -1,5 +1,5 @@
 #![warn(clippy::pedantic)]// will remove if(when) this gets annoying, keeping only to act as a guide while I write bad rust
-use crate::tokens::TokenKind
+use super::tokens::TokenKind;
 // Table: lexer will read table[curr_state][curr_input] = next state
 #[derive(Copy, Clone)]
 pub enum Input { //character stream
@@ -119,7 +119,8 @@ pub fn char_to_cat(input: Input) -> Cat { // return type: Category
 	}
 }
 
-// Table construction ================================================================== 
+// Table construction ==================================================================
+ 
 // build rows of states for each category, for every state
 pub fn build_transition_table() -> [[State; CAT_COUNT]; STATE_COUNT] {
 	use State::*;
