@@ -1,18 +1,21 @@
 #![warn(clippy::pedantic)]// will remove if(when) this gets annoying, keeping only to act as a guide while I write bad rust
-
+use std::fmt; // for printing nicelsy
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Token {
 	pub token_kind: TokenKind,
 	pub token_attribute: TokenAttribute,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TokenAttribute {
 	// Location
 	pub line: usize,
 	pub col: usize,
-	// lexeme
+	// lexeme: word in a program
 	pub lexeme: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenKind {
 	// Keywords: only one possible lexeme
 	Function,
@@ -79,3 +82,16 @@ pub enum TokenKind {
 	
 }
 
+// =============DISPLAY FOR TESTING=============== 
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Token Kind: {:<12} Lexeme: {:<25} Line: {:<3} Col: {:<3}",
+            format!("{:?}", self.token_kind),
+            self.token_attribute.lexeme,
+            self.token_attribute.line,
+            self.token_attribute.col
+        )
+    }
+}

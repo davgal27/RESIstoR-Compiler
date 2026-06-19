@@ -169,5 +169,5 @@ pub fn build_transition_table() -> [[State; CAT_COUNT]; STATE_COUNT] {
     t[StartState as usize]			[Equals as usize]         	= ConsumedEquals;
     t[StartState as usize]			[Comma as usize]          	= ConsumedComma;
 
-    t
+    return t;
 }
