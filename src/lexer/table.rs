@@ -1,11 +1,6 @@
 #![warn(clippy::pedantic)]// will remove if(when) this gets annoying, keeping only to act as a guide while I write bad rust
 use super::tokens::TokenKind;
 // Table: lexer will read table[curr_state][curr_input] = next state
-#[derive(Copy, Clone)]
-pub enum Input { //character stream
-	Char(char),
-	EndOfFile,
-}
 // rows: States in the DFA
 #[derive(Copy, Clone, PartialEq)] // might remove partialeq later, adding jic
 pub enum State {
@@ -41,6 +36,15 @@ pub enum State {
 	ErrorState,
 }
 pub const STATE_COUNT: usize = 21; //consts in SCREAMING_SNAKE_CASE according to rust wiki
+
+// comments were useful, but probably should make an accepting bool for the lexer for if(state in Sa)stack.clear()
+pub fn is_accepting (state: State) -> bool {
+	use State::*;
+	match state {
+		StartState | ConsumedMinus | ConsumedPercent | ConsumedFullstop | ErrorState => false,
+		_ => true
+	}
+}
 
 // Create the token from the accepting state 
 pub fn state_to_token(state: State) -> Option<TokenKind> {
@@ -92,11 +96,11 @@ pub enum Cat {
 pub const CAT_COUNT: usize = 18; 
 
 // map characters from input to a Category with match
-pub fn char_to_cat(input: Input) -> Cat { // return type: Category 
+pub fn char_to_cat(c: Option<char>) -> Cat { // return type: Category 
 	use Cat::*; // useful for avoiding prefixes on every state
-	match input {
-		Input::EndOfFile => EndOfFile,
-		Input::Char(char) => match char {
+	match c {
+		None => EndOfFile,
+		Some(char) => match char {
 			'A'..='Z' | 'a'..='z' => Letter,
 			'_' => Letter, // underscore is part of variable_names
 			'0'..='9' => Digit,
