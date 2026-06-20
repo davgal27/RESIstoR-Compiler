@@ -8,8 +8,6 @@ pub fn produce_token(input: &str) -> Vec<(Token)> {
     let t_table = build_transition_table();
     let mut source: Vec<char> = Vec::new();
     let mut tokens: Vec<Token> = Vec::new();
-
-    //location tracking
     let mut line: usize = 1;
     let mut col: usize = 1;
     
@@ -84,7 +82,7 @@ pub fn produce_token(input: &str) -> Vec<(Token)> {
 }
 
 //reserved words listed in the grammar are not valid Idents
-pub fn classify_lexeme(lexeme: &str) -> TokenKind {
+fn classify_lexeme(lexeme: &str) -> TokenKind {
     use TokenKind::*;
     match lexeme {
         "function" => Function,
@@ -121,7 +119,7 @@ pub fn classify_lexeme(lexeme: &str) -> TokenKind {
 }
 
 // identifier from DFA can be a keyword or a label too, so we need to check forthat
-pub fn which_kind(kind: TokenKind, lexeme: &str) -> TokenKind {
+fn which_kind(kind: TokenKind, lexeme: &str) -> TokenKind {
     // if not identifier, leave as is
     if kind != TokenKind::Identifier {
         return kind; 
@@ -138,7 +136,7 @@ pub fn which_kind(kind: TokenKind, lexeme: &str) -> TokenKind {
     TokenKind::Identifier
 }
 
-pub fn is_label(lexeme: &str) -> bool {
+fn is_label(lexeme: &str) -> bool {
     // does the lexeme start with bb? no? not a label
     let Some(rest_of_lexeme) = lexeme.strip_prefix("bb") else {
         return false;
@@ -154,7 +152,7 @@ pub fn is_label(lexeme: &str) -> bool {
 
 
 // take in the source chars, the position in the 
-pub fn next_token(source: &Vec<char>, pos: &mut usize, t_table: &[[State; CAT_COUNT]; STATE_COUNT]) -> Option<(TokenKind, String)>{
+fn next_token(source: &Vec<char>, pos: &mut usize, t_table: &[[State; CAT_COUNT]; STATE_COUNT]) -> Option<(TokenKind, String)>{
     // algorithm from Lexical Analysis notes
     // 1 - INITIALISATION
     let mut current_char : char;
