@@ -4,12 +4,12 @@
 // above is so I can remember thought process when I inevitably forget how I did it in 2 days :) 
 
 pub struct Program {
-	pub externtype: Vec<ExternType>,  //custom type that the function references must be declared at the top of the file
+	pub externtypes: Vec<ExternType>,  //custom type that the function references must be declared at the top of the file
 	pub function: Function,
 }
 pub struct ExternType {
 	pub path: Path,
-	pub field: Vec<Field>,
+	pub fields: Vec<Field>,
 }
 pub struct Field {
 	pub ident: Ident,
@@ -21,7 +21,7 @@ pub struct Function {
 	pub rettype: RetType,
 	pub locals: Vec<(Local, Type)>,
 	pub entry: Label, // label for the entry block
-	pub block: Vec<(Block)>, // entry block + zero or more additional blocks (hence vec)
+	pub blocks: Vec<(Block)>, // entry block + zero or more additional blocks (hence vec)
 }
 pub struct Params {
 	pub params: Vec<(Param)>,
@@ -81,7 +81,7 @@ pub struct Local{
 	pub ident: Ident, // eg %p 
 }
 pub struct Label {
-	pub digit: Vec<(Digit)>, //3 will produce bb3 
+	pub digits: Vec<(Digit)>, //3 will produce bb3 
 }
 pub enum Literal{
 	IntegerLiteral(i64), 
