@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]// will remove if(when) this gets annoying, keeping only to act as a guide while I write bad rust
 use super::ir::*;
 use crate::lexer::tokens::{Token, TokenKind}; 
 
@@ -24,6 +25,7 @@ impl Parser {
 	*/ 
 
 	fn yell_error(&self, message: &str) -> String {
+		let t = self.peek();
 		format!("Syntax Error: {} at Line: {}, Col: {}",
 			message,
 			t.token_attribute.line,
@@ -34,6 +36,15 @@ impl Parser {
     // look but dont consume 
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
+    }
+
+    // for when alternatives are possible (enums) 
+    fn match_token(&mut self, kind: TokenKind) -> bool {
+        if self.check_tokenkind(kind) {
+            self.advance();
+            return true;
+        }
+        false 
     }
  
     // what did we just consume?
@@ -56,36 +67,28 @@ impl Parser {
     // consume the current token and return it
     fn advance(&mut self) -> Token {
         if !self.is_at_end() { self.current += 1; }
-        self.previous().clone()
-    }
- 	// look AND consume 
-    fn match_token(&mut self, kind: TokenKind) -> bool {
-        if self.check(kind) {
-            self.advance();
-            return true;
-        }
-        false
+        self.get_previous_token().clone()
     }
 
     // if the current token is what we expect: consume and return
     // else error
     fn consume_token(&mut self, kind: TokenKind, message: &str) -> Result<Token, String> {
-        if self.check(kind) {
+        if self.check_tokenkind(kind) {
             return Ok(self.advance());
         }
 
-        Err(self.error(self.peek().clone(), message))
+        Err(self.yell_error(message))
     }
 
 	// ========================Parse x ===============================
 	// parse x => returns Result<x, String>.
 	// ? operator: if err return, 
 
-	fn parse_program(&mut self) -> Result<Program, String> {
+	pub fn parse_program(&mut self) -> Result<Program, String> {
 
 		let mut externtypes = Vec::new();
-		while self.check(TokenKind::Extern) {
-			externtype.push(self.parse_extern_type()?); //? operator helps the file not be a bajillion lines long
+		while self.check_tokenkind(TokenKind::Extern) {
+			externtypes.push(self.parse_externtype()?); //? operator helps the file not be a bajillion lines long
 		}
 
 		let function = self.parse_function()?;
@@ -110,12 +113,11 @@ impl Parser {
 		self.consume_token(TokenKind::LCurly, "expected {")?;
 
 		let mut fields = Vec::new();
-		while self.check(TokenKind::Field) {
+		while self.check_tokenkind(TokenKind::Identifier) {
 			fields.push(self.parse_field()?);
 			self.consume_token(TokenKind::SemiColon, "expected ;")?;
 		}
 
-		self.consume_token(TokenKind::SemiColon, "expected ;")?;
 		self.consume_token(TokenKind::RCurly, "expected }")?;
 
 		Ok(ExternType {
@@ -142,17 +144,17 @@ impl Parser {
 		
 		let path = self.parse_path()?;
 
-		self.consume_token(TokenKind::LBrack, "expected (")?;
+		self.consume_token(TokenKind::LBracket, "expected (")?;
 
 		//optional
 		// check if there is a ) right after (, then param list empty
-		let rbrack_present = self.check(TokenKind::RBrack);
+		let rbrack_present = self.check_tokenkind(TokenKind::RBracket);
 		let mut params = None;
 		if rbrack_present == false {
 			params = Some(self.parse_params()?); 
 		}
 
-		self.consume_token(TokenKind::RBrack, "expected )")?;
+		self.consume_token(TokenKind::RBracket, "expected )")?;
 
 		self.consume_token(TokenKind::Arrow, "expected Arrow")?;
 
@@ -165,10 +167,13 @@ impl Parser {
 		self.consume_token(TokenKind::LCurly, "expected {")?;
 
 		let mut locals = Vec::new(); 
-		while self.check(TokenKind::Local) {
+		while self.check_tokenkind(TokenKind::Local) {
 			let local = self.parse_local()?;
+
 			self.consume_token(TokenKind::Colon, "expected : ")?;
+
 			let typealt = self.parse_type()?;
+
 			self.consume_token(TokenKind::SemiColon, "expected ; after specifying type!")?;
 			locals.push((local, typealt)); // psh pair of local and type 
 		}
@@ -182,13 +187,13 @@ impl Parser {
 		self.consume_token(TokenKind::SemiColon, "expected ; after entry label")?;
 
 		let mut blocks = Vec::new();
-		while self.check(TokenKind::Label) {
+		while self.check_tokenkind(TokenKind::Label) {
 			blocks.push(self.parse_block()?);
 		}
 
 		self.consume_token(TokenKind::RCurly, "expected }")?; 
 
-		Ok(Function{
+		Ok(Function {
 			path,
 			params,
 			rettype,
@@ -201,10 +206,13 @@ impl Parser {
 	fn parse_params (&mut self) -> Result<Params, String> {
 		let mut params = Vec::new(); 
 		params.push(self.parse_param()?);
-		while self.check(TokenKind::Comma) {
+
+		while self.check_tokenkind(TokenKind::Comma) {
+			self.consume_token(TokenKind::Comma, "expected ,")?;
 			params.push(self.parse_param()?);
 		}
-		Ok(Params{
+
+		Ok(Params {
 			params,
 		})
 
@@ -233,32 +241,414 @@ impl Parser {
 	    Ok(RetType::typealt(typealt))
 	}
 
-	fn parse_block
+	fn parse_block(&mut self) -> Result<Block, String> {
+		let label = self.parse_label()?;
 
-	fn parse_stmt
+		self.consume_token(TokenKind::Colon, "expected  :")?;
 
-	fn parse_rhs
+		let mut stmt = Vec::new();
+		//statement if it is none of the terminators 
+		while self.check_tokenkind(TokenKind::Jump) == false && self.check_tokenkind(TokenKind::CJump) == false &&
+			self.check_tokenkind(TokenKind::Return) == false && self.is_at_end() == false {
+				stmt.push(self.parse_stmt()?);
+				self.consume_token(TokenKind::SemiColon, "unterminated statement... perhaps you forgot a ;?")?;
+			}
 
-	fn pars_args
+		let term = self.parse_term()?;
 
-	fn pars_term
+		self.consume_token(TokenKind::SemiColon, "expected ; after a block terminator!")?;
 
-	fn parse_type
+		Ok(Block{
+			label,
+			stmt,
+			term
+		})
+	}
 
-	fn parse_primtype
+    fn parse_stmt(&mut self) -> Result<Stmt, String> {
+       	// if i understood well this is the reason the assignment stated ALMOST always one token of lookahead 
+   		// check if an equal is there after Local
+        let checkpoint = self.current;
+        self.advance();
+        let equals_present = self.check_tokenkind(TokenKind::Equals);
+        self.current = checkpoint;
 
-	fn parse_path
+        let mut local = None;
+        if equals_present == true {
+        	local = Some(self.parse_local()?);
+        	self.consume_token(TokenKind::Equals, "Expected = ")?;
+        }
 
-	fn parse_local
+        let rhs = self.parse_rhs()?;
 
-	fn parse_label
+        Ok(Stmt{
+        	local,
+        	rhs
+        })
 
-	fn parse_literal
+    }
 
-	fn parse_unop
+    fn parse_rhs(&mut self) -> Result<Rhs, String> {
 
-	fn parse_binop
+	    if self.check_tokenkind(TokenKind::Local) {
+	        let local = self.parse_local()?;
 
-	fn parse_ident
+	        return Ok(Rhs::Use(local));
+	    }
 
-	fn parse_digit
+	    if self.check_tokenkind(TokenKind::Const) {
+	        self.consume_token(TokenKind::Const, "expected 'const'")?;
+
+	        let literal = self.parse_literal()?;
+
+	        return Ok(Rhs::Const(literal));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Cast) {
+	        self.consume_token(TokenKind::Cast, "expected 'cast'")?;
+
+	        let local = self.parse_local()?;
+
+	        self.consume_token(TokenKind::To, "expected 'to'")?;
+
+	        let typealt = self.parse_type()?;
+
+	        return Ok(Rhs::Cast(local, typealt));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Un) {
+	        self.consume_token(TokenKind::Un, "expected 'un'")?;
+
+	        let unop = self.parse_unop()?;
+
+	        let local = self.parse_local()?;
+
+	        return Ok(Rhs::Un(unop, local));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Bin) {
+	        self.consume_token(TokenKind::Bin, "expected 'bin'")?;
+
+	        let binop = self.parse_binop()?;
+
+	        let local_one = self.parse_local()?;
+
+	        self.consume_token(TokenKind::Comma, "expected ','")?;
+
+	        let local_two = self.parse_local()?;
+
+	        return Ok(Rhs::Bin(binop, local_one, local_two));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Addr_of) {
+	        self.consume_token(TokenKind::Addr_of, "expected 'addr_of'")?;
+
+	        let local = self.parse_local()?;
+
+	        return Ok(Rhs::Addr_of(local));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Member_ptr) {
+	        self.consume_token(TokenKind::Member_ptr, "expected 'member_ptr'")?;
+
+	        let local = self.parse_local()?;
+
+	        self.consume_token(TokenKind::Comma, "expected ','")?;
+
+	        let ident = self.parse_ident()?;
+
+	        return Ok(Rhs::Member_ptr(local, ident));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Load) {
+	        self.consume_token(TokenKind::Load, "expected 'load'")?;
+
+	        let local = self.parse_local()?;
+
+	        return Ok(Rhs::Load(local));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Store) {
+	        self.consume_token(TokenKind::Store, "expected 'store'")?;
+
+	        let local_one = self.parse_local()?;
+
+	        self.consume_token(TokenKind::Comma, "expected ','")?;
+
+	        let local_two = self.parse_local()?;
+
+	        return Ok(Rhs::Store(local_one, local_two));
+	    }
+
+		if self.check_tokenkind(TokenKind::Call) {
+		    self.consume_token(TokenKind::Call, "expected 'call'")?;
+
+		    let path = self.parse_path()?;
+		    
+		    self.consume_token(TokenKind::LBracket, "expected '('")?;
+		    
+		    let rbrack_present = self.check_tokenkind(TokenKind::RBracket);
+		    let mut args = None;
+		    if rbrack_present == false {
+		        args = Some(self.parse_args()?);
+		    }
+		    
+		    self.consume_token(TokenKind::RBracket, "expected ')'")?;
+		    
+		    return Ok(Rhs::Call(path, args));
+		}
+
+	    Err(self.yell_error("expected a statement"))
+	}
+
+	fn parse_args(&mut self) -> Result<Args, String> {
+	    let mut locals = Vec::new();
+	    let local_one = self.parse_local()?;
+	    locals.push(local_one);
+
+	    while self.check_tokenkind(TokenKind::Comma) {
+	        self.consume_token(TokenKind::Comma, "expected ,")?;
+
+	        let local_rest = self.parse_local()?;
+	        locals.push(local_rest);
+	    }
+
+	    Ok(Args {
+	    	locals 
+	 	})
+	}
+
+	fn parse_term(&mut self) -> Result<Term, String> {
+
+	    if self.check_tokenkind(TokenKind::Jump) {
+	        self.consume_token(TokenKind::Jump, "expected jump")?;
+
+	        let label = self.parse_label()?;
+
+	        return Ok(Term::Jump(label));
+	    }
+	    
+	    if self.check_tokenkind(TokenKind::CJump) {
+	        self.consume_token(TokenKind::CJump, "expected cjump")?;
+
+	        let local = self.parse_local()?;	        
+	        
+	        self.consume_token(TokenKind::Comma, "expected ,")?;	        
+	        
+	        let label_one = self.parse_label()?;	        
+	        
+	        self.consume_token(TokenKind::Comma, "expected ,")?;
+	        
+			let label_two = self.parse_label()?;
+	        
+	        return Ok(Term::CJump(local, label_one, label_two));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Return) {
+	        self.consume_token(TokenKind::Return, "expected return")?;
+
+	        let local_present = self.check_tokenkind(TokenKind::Local);
+	        let mut local = None;
+	        if local_present == true {
+	            local = Some(self.parse_local()?);
+	        }
+
+	        return Ok(Term::Return(local));
+	    }
+
+	    Err(self.yell_error("expected a terminator (jump, cjump, or return)"))
+	}
+
+	fn parse_type(&mut self) -> Result<Type, String> {
+
+	    if self.check_tokenkind(TokenKind::Bool) || self.check_tokenkind(TokenKind::I32)
+	    || self.check_tokenkind(TokenKind::I64) || self.check_tokenkind(TokenKind::U32)
+	    || self.check_tokenkind(TokenKind::F64) {
+	        let primtype = self.parse_primtype()?;
+
+	        return Ok(Type::PrimType(primtype));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Identifier) {
+	        let path = self.parse_path()?;
+	        return Ok(Type::Path(path));
+	    }
+
+	    if self.check_tokenkind(TokenKind::Ptr) {
+	        self.consume_token(TokenKind::Ptr, "expected ptr")?;
+
+	        self.consume_token(TokenKind::LessThan, "expected <")?;
+
+	        let typealt = self.parse_type()?;
+
+	        self.consume_token(TokenKind::GreaterThan, "expected >")?;
+
+	        return Ok(Type::Ptr(Box::new(typealt)));
+	    }
+
+	    Err(self.yell_error("expected a type"))
+	}
+
+	fn parse_primtype(&mut self) -> Result<PrimType, String> {
+	    if self.check_tokenkind(TokenKind::Bool) {
+	        self.consume_token(TokenKind::Bool, "expected bool")?;
+	        return Ok(PrimType::Bool);
+	    }
+	    if self.check_tokenkind(TokenKind::I32) {
+	        self.consume_token(TokenKind::I32, "expected i32")?;
+	        return Ok(PrimType::I32);
+	    }
+	    if self.check_tokenkind(TokenKind::I64) {
+	        self.consume_token(TokenKind::I64, "expected i64")?;
+	        return Ok(PrimType::I64);
+	    }
+	    if self.check_tokenkind(TokenKind::U32) {
+	        self.consume_token(TokenKind::U32, "expected u32")?;
+	        return Ok(PrimType::U32);
+	    }
+	    if self.check_tokenkind(TokenKind::F64) {
+	        self.consume_token(TokenKind::F64, "expected f64")?;
+	        return Ok(PrimType::F64);
+	    }
+
+	    Err(self.yell_error("expected a primitive type"))
+	}
+
+	fn parse_path(&mut self) -> Result<Path, String> {
+	    let mut ident = Vec::new();
+
+	    let ident_one = self.parse_ident()?;
+	    ident.push(ident_one);
+
+	    while self.check_tokenkind(TokenKind::PathSep) {
+	        self.consume_token(TokenKind::PathSep, "expected ::")?;
+
+	        let ident_rest = self.parse_ident()?;
+	        ident.push(ident_rest);
+	    }
+
+	    Ok(Path {
+	    	ident 
+	 	})
+	}
+
+	fn parse_local(&mut self) -> Result<Local, String> {
+	    let local = self.consume_token(TokenKind::Local, "expected a local (%name)")?;
+	    let lexeme = local.token_attribute.lexeme[1..].to_string(); // remmove the % 
+	    let ident = Ident {string: lexeme};
+
+	    Ok(Local {
+	    	ident 
+	    })
+	}
+
+	fn parse_label(&mut self) -> Result<Label, String> {
+	    let label = self.consume_token(TokenKind::Label, "expected a label (bbN)")?;
+
+	    let mut digits = Vec::new();
+	    for chars in label.token_attribute.lexeme[2..].chars() {
+	        let digit = self.parse_digit(chars)?;
+	        digits.push(digit);
+	    }
+
+	    Ok(Label {
+	    	digits
+	    })
+	}
+
+	fn parse_literal(&mut self) -> Result<Literal, String> {
+	    if self.check_tokenkind(TokenKind::IntegerLiteral) {
+	        let int = self.consume_token(TokenKind::IntegerLiteral, "expected an integer")?;
+
+	        let parsed_int = int.token_attribute.lexeme.parse::<i64>();//parse converts to other type
+	        if parsed_int.is_err() {
+	            return Err(self.yell_error("invalid integer literal"));
+	        }
+	        let int_val = parsed_int.unwrap();
+
+	        return Ok(Literal::IntegerLiteral(int_val));
+	    }
+
+	    if self.check_tokenkind(TokenKind::FloatLiteral) {
+	        let float = self.consume_token(TokenKind::FloatLiteral, "expected a float")?;
+
+	        let parsed_float = float.token_attribute.lexeme.parse::<f64>();
+
+	        if parsed_float.is_err() {
+	            return Err(self.yell_error("invalid float literal"));
+	        }
+	        let float_val = parsed_float.unwrap();
+
+	        return Ok(Literal::FloatLiteral(float_val));
+	    }
+
+	    if self.check_tokenkind(TokenKind::True) {
+	        self.consume_token(TokenKind::True, "expected 'true'")?;
+	        return Ok(Literal::True);
+	    }
+	    if self.check_tokenkind(TokenKind::False) {
+	        self.consume_token(TokenKind::False, "expected 'false'")?;
+	        return Ok(Literal::False);
+	    }
+	    if self.check_tokenkind(TokenKind::Null) {
+	        self.consume_token(TokenKind::Null, "expected 'null'")?;
+	        return Ok(Literal::Null);
+	    }
+
+	    Err(self.yell_error("expected a literal"))
+	}
+
+	fn parse_unop(&mut self) -> Result<UnOp, String> {
+	    let t = self.consume_token(TokenKind::Identifier, "expected a unary operator ")?;
+	    match t.token_attribute.lexeme.as_str() {
+	        "neg" => Ok(UnOp::Neg),
+	        "not" => Ok(UnOp::Not),
+	        other => Err(format!(
+	            "Syntax Error: unknown unary operator '{}' at Line: {}, Col: {}",
+	            other, t.token_attribute.line, t.token_attribute.col
+	        )),
+	    }
+	}
+
+	fn parse_binop(&mut self) -> Result<BinOp, String> {
+	    let t = self.consume_token(TokenKind::Identifier, "expected a binary operator")?;
+	    match t.token_attribute.lexeme.as_str() {
+	        "add" => Ok(BinOp::Add),
+	        "sub" => Ok(BinOp::Sub),
+	        "mul" => Ok(BinOp::Mul),
+	        "div" => Ok(BinOp::Div),
+	        "mod" => Ok(BinOp::Mod),
+	        "eq"  => Ok(BinOp::Eq),
+	        "ne"  => Ok(BinOp::Ne),
+	        "lt"  => Ok(BinOp::Lt),
+	        "le"  => Ok(BinOp::Le),
+	        "gt"  => Ok(BinOp::Gt),
+	        "ge"  => Ok(BinOp::Ge),
+	        "and" => Ok(BinOp::And),
+	        "or"  => Ok(BinOp::Or),
+	        other => Err(format!(
+	            "Syntax Error: unknown binary operator '{}' at Line: {}, Col: {}",
+	            other, t.token_attribute.line, t.token_attribute.col
+	        )),
+	    }
+	}
+
+	fn parse_ident(&mut self) -> Result<Ident, String> {
+	    let t = self.consume_token(TokenKind::Identifier, "expected an identifier")?;
+	    let string = t.token_attribute.lexeme;
+	    Ok(Ident {
+	    	string
+	    })
+	}
+
+	fn parse_digit(&self, c: char) -> Result<Digit, String> {
+	    let d = c.to_digit(10);
+	    if d.is_none() {
+	        return Err(self.yell_error(&format!("invalid digit '{}' in label", c)));
+	    }
+	    let digit = d.unwrap();
+	    Ok(Digit{
+	    	digit
+	    })
+	}
+}

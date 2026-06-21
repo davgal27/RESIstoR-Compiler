@@ -82,9 +82,9 @@ pub enum TokenKind {
 	
 }
 
-// =============DISPLAY FOR TESTING=============== 
+//=============DISPLAY FOR TESTING=============== 
 impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "Token Kind: {:<12} Lexeme: {:<25} Line: {:<3} Col: {:<3}",
