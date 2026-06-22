@@ -2,7 +2,7 @@
 use super::tokens::{TokenKind, TokenAttribute, Token};
 use super::table::{State, Cat, STATE_COUNT, CAT_COUNT, is_accepting, char_to_cat, build_transition_table, state_to_token,};
 // will use a batch token model: Scan the whole input and put into Vec<TokensFromLexer> jlox from CraftingInterpreters
-pub fn produce_token(input: &str) -> Vec<Token> {
+pub fn produce_tokens(input: &str) -> Result<Vec<Token>, String> {
 
     let mut pos_in_source: usize = 0; 
     let t_table = build_transition_table();
@@ -68,8 +68,7 @@ pub fn produce_token(input: &str) -> Vec<Token> {
                 // lexical error: next_token stepped over an offendngi token
                 None => {
                     let offending_char = source[pos_in_source -1];
-                    eprintln!("Lexical error: Unexpected Character '{offending_char}' at line {line}, col {start_col}");
-                    col +=1;
+                    return Err(format!("Lexical Error: Unexpected character '{offending_char}' at line {line}, col {start_col}",));
                 }
             }
 
@@ -77,7 +76,7 @@ pub fn produce_token(input: &str) -> Vec<Token> {
 
 
     }
-    return tokens;
+    Ok(tokens)
 
 }
 

@@ -1,20 +1,21 @@
-use crate::lexer::lexer_core::produce_token;
+use crate::lexer::lexer_core::produce_tokens;
 use crate::parser::parser_core::Parser;
 use crate::parser::ir::*;
 use super::samples::*;
 
-fn lex(input: &str) -> String {
-    let tokens = produce_token(input);
+fn lex(input: &str) -> Result<String, String> {
+    let tokens = produce_tokens(input)?;
     let mut kinds = Vec::new();
+
     for token in &tokens {
         kinds.push(token.token_kind.clone());
     }
-    format!("{:?}", kinds)
+
+    Ok(format!("{:?}", kinds))
 }
- 
 
 fn parse(input: &str) -> Result<Program, String> {
-    let tokens = produce_token(input);
+    let tokens = produce_tokens(input)?;
     let mut parser = Parser::new(tokens);
     parser.parse_program()
 }
@@ -33,17 +34,18 @@ pub const QUICK_LEXER: &[(&str, &str)] = &[
 #[test]
 fn lexer_produces_correct_tokens() {
     for &(input, expected) in QUICK_LEXER {
-        assert_eq!(lex(input), expected, "for input:\n{}", input);
+        assert_eq!(lex(input).unwrap(), expected, "for input:\n{}", input);
     }
 }
- 
 
-// lexer should not crash only should return errors
 #[test]
-fn lexer_doesnt_crash_with_invalid_input() {
-    let _ = produce_token(INVALID_NO_SEMICOLON);
-    let _ = produce_token(INVALID_MISSING_ENTRY);
-    let _ = produce_token(INVALID_BAD_SYNTAX);
+fn lexer_returns_error_for_bad_characters() {
+    let result = produce_tokens(INVALID_BAD_SYNTAX);
+
+    assert!(result.is_err());
+
+    let message = result.unwrap_err();
+    assert!(message.contains("Lexical Error"));
 }
 
 // =========================PARSER=============================
@@ -125,4 +127,172 @@ fn missing_entry_doesnt_parse() {
 fn bad_syntax_doesnt_parse() {
     let result = parse(INVALID_BAD_SYNTAX);
     assert!(result.is_err());
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#[test]
+fn lexer_accepts_literals() {
+    assert_eq!(
+        lex("true false null 123 12.34").unwrap(),
+        "[True, False, Null, IntegerLiteral, FloatLiteral, EndOfFile]"
+    );
+}
+
+#[test]
+fn lexer_accepts_all_basic_punctuation() {
+    assert_eq!(
+        lex("( ) { } -> : ; = , < > ::").unwrap(),
+        "[LBracket, RBracket, LCurly, RCurly, Arrow, Colon, SemiColon, Equals, Comma, LessThan, GreaterThan, PathSep, EndOfFile]"
+    );
+}
+
+#[test]
+fn lexer_rejects_bare_percent() {
+    let result = produce_tokens("%");
+    assert!(result.is_err());
+}
+
+#[test]
+fn lexer_rejects_bad_arrow() {
+    let result = produce_tokens("-");
+    assert!(result.is_err());
+}
+
+#[test]
+fn lexer_rejects_incomplete_float() {
+    let result = produce_tokens("123.");
+    assert!(result.is_err());
+}
+
+
+
+
+#[test]
+fn void_return_parses() {
+    let input = "
+    function Test::noop() -> void {
+        locals { }
+        entry bb0;
+        bb0:
+            return;
+    }
+    ";
+
+    let p = parse(input).expect("void function should parse");
+    let term = &p.function.blocks[0].term;
+
+    assert!(matches!(term, Term::Return(None)));
+}
+
+#[test]
+fn nested_pointer_type_parses() {
+    let input = "
+    function Test::ptrs(%p: ptr<ptr<i32>>) -> void {
+        locals { }
+        entry bb0;
+        bb0:
+            return;
+    }
+    ";
+
+    assert!(parse(input).is_ok());
+}
+
+#[test]
+fn cast_parses() {
+    let input = "
+    function Test::cast_example(%a: i32) -> i64 {
+        locals { %b : i64; }
+        entry bb0;
+        bb0:
+            %b = cast %a to i64;
+            return %b;
+    }
+    ";
+
+    let p = parse(input).expect("cast should parse");
+    assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Cast(_, _)));
+}
+
+#[test]
+fn addr_of_parses() {
+    let input = "
+    function Test::addr(%a: i32) -> void {
+        locals { %p : ptr<i32>; }
+        entry bb0;
+        bb0:
+            %p = addr_of %a;
+            return;
+    }
+    ";
+
+    let p = parse(input).expect("addr_of should parse");
+    assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Addr_of(_)));
+}
+
+#[test]
+fn load_and_store_parse() {
+    let input = "
+    function Test::load_store(%p: ptr<i32>, %v: i32) -> i32 {
+        locals { %x : i32; }
+        entry bb0;
+        bb0:
+            store %p, %v;
+            %x = load %p;
+            return %x;
+    }
+    ";
+
+    let p = parse(input).expect("load/store should parse");
+    let stmts = &p.function.blocks[0].stmt;
+
+    assert!(matches!(stmts[0].rhs, Rhs::Store(_, _)));
+    assert!(matches!(stmts[1].rhs, Rhs::Load(_)));
+}
+
+#[test]
+fn local_copy_parses() {
+    let input = "
+    function Test::copy(%a: i32) -> i32 {
+        locals { %x : i32; }
+        entry bb0;
+        bb0:
+            %x = %a;
+            return %x;
+    }
+    ";
+
+    let p = parse(input).expect("local copy should parse");
+    assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Use(_)));
+}
+
+#[test]
+fn jump_parses() {
+    let input = "
+    function Test::jump_only() -> i32 {
+        locals { %x : i32; }
+        entry bb0;
+        bb0:
+            jump bb1;
+        bb1:
+            %x = const 1;
+            return %x;
+    }
+    ";
+
+    let p = parse(input).expect("jump should parse");
+    assert!(matches!(p.function.blocks[0].term, Term::Jump(_)));
 }
