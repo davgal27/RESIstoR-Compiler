@@ -1,4 +1,4 @@
-#![warn(clippy::pedantic)]// will remove if(when) this gets annoying, keeping only to act as a guide while I write bad rust
+
 use super::tokens::TokenKind;
 // Table: lexer will read table[curr_state][curr_input] = next state
 // rows: States in the DFA

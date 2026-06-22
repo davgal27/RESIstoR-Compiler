@@ -1,8 +1,8 @@
-#![warn(clippy::pedantic)]// will remove if(when) this gets annoying, keeping only to act as a guide while I write bad rust
+
 use super::tokens::{TokenKind, TokenAttribute, Token};
 use super::table::{State, Cat, STATE_COUNT, CAT_COUNT, is_accepting, char_to_cat, build_transition_table, state_to_token,};
 // will use a batch token model: Scan the whole input and put into Vec<TokensFromLexer> jlox from CraftingInterpreters
-pub fn produce_token(input: &str) -> Vec<(Token)> {
+pub fn produce_token(input: &str) -> Vec<Token> {
 
     let mut pos_in_source: usize = 0; 
     let t_table = build_transition_table();

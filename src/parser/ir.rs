@@ -1,4 +1,4 @@
-#![warn(clippy::pedantic)]// will remove if(when) this gets annoying, keeping only to act as a guide while I write bad rust
+
 
 // https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
 // above is so I can remember thought process when I inevitably forget how I did it in 2 days :) 
@@ -27,12 +27,12 @@ pub struct Function {
 	pub rettype: RetType,
 	pub locals: Vec<(Local, Type)>,
 	pub entry: Label, // label for the entry block
-	pub blocks: Vec<(Block)>, // entry block + zero or more additional blocks (hence vec)
+	pub blocks: Vec<Block>, // entry block + zero or more additional blocks (hence vec)
 }
 
 #[derive(Debug)]
 pub struct Params {
-	pub params: Vec<(Param)>,
+	pub params: Vec<Param>,
 }
 
 #[derive(Debug)]
@@ -76,7 +76,7 @@ pub enum Rhs {
 
 #[derive(Debug)]
 pub struct Args{
-	pub locals: Vec<(Local)>,
+	pub locals: Vec<Local>,
 }
 
 #[derive(Debug)]
@@ -104,7 +104,7 @@ pub enum PrimType{
 
 #[derive(Debug)]
 pub struct Path{
-	pub ident: Vec<(Ident)>,
+	pub ident: Vec<Ident>,
 }
 
 #[derive(Debug)]
@@ -114,7 +114,7 @@ pub struct Local{
 
 #[derive(Debug)]
 pub struct Label {
-	pub digits: Vec<(Digit)>, //3 will produce bb3 
+	pub digits: Vec<Digit>, //3 will produce bb3 
 }
 
 #[derive(Debug)]
