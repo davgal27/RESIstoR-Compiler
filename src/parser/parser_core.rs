@@ -1,4 +1,3 @@
-
 use super::ir::*;
 use crate::lexer::tokens::{Token, TokenKind}; 
 
@@ -88,7 +87,7 @@ impl Parser {
 
 		let mut externtypes = Vec::new();
 		while self.check_tokenkind(TokenKind::Extern) {
-			externtypes.push(self.parse_externtype()?); //? operator helps the file not be a bajillion lines long
+			externtypes.push(self.parse_externtype()?); //? operator helps the code not be a bajillion lines long
 		}
 
 		let function = self.parse_function()?;
