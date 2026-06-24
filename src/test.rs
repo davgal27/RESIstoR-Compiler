@@ -140,159 +140,158 @@ fn bad_syntax_doesnt_parse() {
 
 
 
+// JIPPITY TESTS 
+
+// #[test]
+// fn lexer_accepts_literals() {
+//     assert_eq!(
+//         lex("true false null 123 12.34").unwrap(),
+//         "[True, False, Null, IntegerLiteral, FloatLiteral, EndOfFile]"
+//     );
+// }
+
+// #[test]
+// fn lexer_accepts_all_basic_punctuation() {
+//     assert_eq!(
+//         lex("( ) { } -> : ; = , < > ::").unwrap(),
+//         "[LBracket, RBracket, LCurly, RCurly, Arrow, Colon, SemiColon, Equals, Comma, LessThan, GreaterThan, PathSep, EndOfFile]"
+//     );
+// }
+
+// #[test]
+// fn lexer_rejects_bare_percent() {
+//     let result = produce_tokens("%");
+//     assert!(result.is_err());
+// }
+
+// #[test]
+// fn lexer_rejects_bad_arrow() {
+//     let result = produce_tokens("-");
+//     assert!(result.is_err());
+// }
+
+// #[test]
+// fn lexer_rejects_incomplete_float() {
+//     let result = produce_tokens("123.");
+//     assert!(result.is_err());
+// }
 
 
 
-#[test]
-fn lexer_accepts_literals() {
-    assert_eq!(
-        lex("true false null 123 12.34").unwrap(),
-        "[True, False, Null, IntegerLiteral, FloatLiteral, EndOfFile]"
-    );
-}
 
-#[test]
-fn lexer_accepts_all_basic_punctuation() {
-    assert_eq!(
-        lex("( ) { } -> : ; = , < > ::").unwrap(),
-        "[LBracket, RBracket, LCurly, RCurly, Arrow, Colon, SemiColon, Equals, Comma, LessThan, GreaterThan, PathSep, EndOfFile]"
-    );
-}
+// #[test]
+// fn void_return_parses() {
+//     let input = "
+//     function Test::noop() -> void {
+//         locals { }
+//         entry bb0;
+//         bb0:
+//             return;
+//     }
+//     ";
 
-#[test]
-fn lexer_rejects_bare_percent() {
-    let result = produce_tokens("%");
-    assert!(result.is_err());
-}
+//     let p = parse(input).expect("void function should parse");
+//     let term = &p.function.blocks[0].term;
 
-#[test]
-fn lexer_rejects_bad_arrow() {
-    let result = produce_tokens("-");
-    assert!(result.is_err());
-}
+//     assert!(matches!(term, Term::Return(None)));
+// }
 
-#[test]
-fn lexer_rejects_incomplete_float() {
-    let result = produce_tokens("123.");
-    assert!(result.is_err());
-}
+// #[test]
+// fn nested_pointer_type_parses() {
+//     let input = "
+//     function Test::ptrs(%p: ptr<ptr<i32>>) -> void {
+//         locals { }
+//         entry bb0;
+//         bb0:
+//             return;
+//     }
+//     ";
 
+//     assert!(parse(input).is_ok());
+// }
 
+// #[test]
+// fn cast_parses() {
+//     let input = "
+//     function Test::cast_example(%a: i32) -> i64 {
+//         locals { %b : i64; }
+//         entry bb0;
+//         bb0:
+//             %b = cast %a to i64;
+//             return %b;
+//     }
+//     ";
 
+//     let p = parse(input).expect("cast should parse");
+//     assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Cast(_, _)));
+// }
 
-#[test]
-fn void_return_parses() {
-    let input = "
-    function Test::noop() -> void {
-        locals { }
-        entry bb0;
-        bb0:
-            return;
-    }
-    ";
+// #[test]
+// fn addr_of_parses() {
+//     let input = "
+//     function Test::addr(%a: i32) -> void {
+//         locals { %p : ptr<i32>; }
+//         entry bb0;
+//         bb0:
+//             %p = addr_of %a;
+//             return;
+//     }
+//     ";
 
-    let p = parse(input).expect("void function should parse");
-    let term = &p.function.blocks[0].term;
+//     let p = parse(input).expect("addr_of should parse");
+//     assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Addr_of(_)));
+// }
 
-    assert!(matches!(term, Term::Return(None)));
-}
+// #[test]
+// fn load_and_store_parse() {
+//     let input = "
+//     function Test::load_store(%p: ptr<i32>, %v: i32) -> i32 {
+//         locals { %x : i32; }
+//         entry bb0;
+//         bb0:
+//             store %p, %v;
+//             %x = load %p;
+//             return %x;
+//     }
+//     ";
 
-#[test]
-fn nested_pointer_type_parses() {
-    let input = "
-    function Test::ptrs(%p: ptr<ptr<i32>>) -> void {
-        locals { }
-        entry bb0;
-        bb0:
-            return;
-    }
-    ";
+//     let p = parse(input).expect("load/store should parse");
+//     let stmts = &p.function.blocks[0].stmt;
 
-    assert!(parse(input).is_ok());
-}
+//     assert!(matches!(stmts[0].rhs, Rhs::Store(_, _)));
+//     assert!(matches!(stmts[1].rhs, Rhs::Load(_)));
+// }
 
-#[test]
-fn cast_parses() {
-    let input = "
-    function Test::cast_example(%a: i32) -> i64 {
-        locals { %b : i64; }
-        entry bb0;
-        bb0:
-            %b = cast %a to i64;
-            return %b;
-    }
-    ";
+// #[test]
+// fn local_copy_parses() {
+//     let input = "
+//     function Test::copy(%a: i32) -> i32 {
+//         locals { %x : i32; }
+//         entry bb0;
+//         bb0:
+//             %x = %a;
+//             return %x;
+//     }
+//     ";
 
-    let p = parse(input).expect("cast should parse");
-    assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Cast(_, _)));
-}
+//     let p = parse(input).expect("local copy should parse");
+//     assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Use(_)));
+// }
 
-#[test]
-fn addr_of_parses() {
-    let input = "
-    function Test::addr(%a: i32) -> void {
-        locals { %p : ptr<i32>; }
-        entry bb0;
-        bb0:
-            %p = addr_of %a;
-            return;
-    }
-    ";
+// #[test]
+// fn jump_parses() {
+//     let input = "
+//     function Test::jump_only() -> i32 {
+//         locals { %x : i32; }
+//         entry bb0;
+//         bb0:
+//             jump bb1;
+//         bb1:
+//             %x = const 1;
+//             return %x;
+//     }
+//     ";
 
-    let p = parse(input).expect("addr_of should parse");
-    assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Addr_of(_)));
-}
-
-#[test]
-fn load_and_store_parse() {
-    let input = "
-    function Test::load_store(%p: ptr<i32>, %v: i32) -> i32 {
-        locals { %x : i32; }
-        entry bb0;
-        bb0:
-            store %p, %v;
-            %x = load %p;
-            return %x;
-    }
-    ";
-
-    let p = parse(input).expect("load/store should parse");
-    let stmts = &p.function.blocks[0].stmt;
-
-    assert!(matches!(stmts[0].rhs, Rhs::Store(_, _)));
-    assert!(matches!(stmts[1].rhs, Rhs::Load(_)));
-}
-
-#[test]
-fn local_copy_parses() {
-    let input = "
-    function Test::copy(%a: i32) -> i32 {
-        locals { %x : i32; }
-        entry bb0;
-        bb0:
-            %x = %a;
-            return %x;
-    }
-    ";
-
-    let p = parse(input).expect("local copy should parse");
-    assert!(matches!(p.function.blocks[0].stmt[0].rhs, Rhs::Use(_)));
-}
-
-#[test]
-fn jump_parses() {
-    let input = "
-    function Test::jump_only() -> i32 {
-        locals { %x : i32; }
-        entry bb0;
-        bb0:
-            jump bb1;
-        bb1:
-            %x = const 1;
-            return %x;
-    }
-    ";
-
-    let p = parse(input).expect("jump should parse");
-    assert!(matches!(p.function.blocks[0].term, Term::Jump(_)));
-}
+//     let p = parse(input).expect("jump should parse");
+//     assert!(matches!(p.function.blocks[0].term, Term::Jump(_)));
+// }

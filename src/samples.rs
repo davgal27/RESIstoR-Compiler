@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub const EXAMPLE_ASSIGNMENT_1: &str =
 "
 function Math::abs_diff(%a: i32, %b: i32) -> i32 {
@@ -153,7 +154,7 @@ function Math::abs_diff(%a: i32, %b: i32) -> i32 {
 }
 ";
 
-pub const INVALID_BAD_SYNTAX: &str = 
+pub const INVALID_CHARACTERS : &str = 
 "
 bla bla nonsense !!! @function $$$
 "

@@ -13,15 +13,15 @@ impl SymbolTable {
         }
     }
 
-    fn insert() -> (&mut self, name: &str, typealt: Type) {
+    fn insert(&mut self, name: &str, typealt: Type) {
         self.scope.insert(name.to_string(), typealt);
     }
     
     // take local and output its type
-    fn lookup(&self, local: &Local) -> Result<Type, string> {
+    fn lookup(&self, local: &Local) -> Result<Type, String> {
         match self.scope.get(&local.ident.string) {
             Some(typealt) => Ok(typealt.clone()),
-            None => Err(format!("%{local.ident.string} is used in your code, but has no type! Consider declaring it."))
+            None => Err(format!("%{} is used in your code, but has no type! Consider declering it.", local.ident.string))
         }
     }
 }
@@ -99,7 +99,7 @@ fn check_locals_declared(function: &Function, symboltable: &SymbolTable) -> Resu
             Term::Jump(_) => {}
             Term::CJump(local,_,_) => {symboltable.lookup(local)?;}
             Term::Return(local) => match local {
-                Some(local) => symboltable.lookup(local)?,
+                Some(local) => {symboltable.lookup(local)?; }
                 None => {} 
             }
         }
@@ -411,7 +411,7 @@ fn check_statements(program: &Program, symboltable: &SymbolTable) -> Result<(), 
                     }
                     let field_type = match field_type {
                         Some(typealt) => typealt,
-                        None => return Err(format!("field {field.string} does not exist on {path:?}")),
+                        None => return Err(format!("field {} does not exist on {path:?}", field.string)),
                     };
 
                     // 4

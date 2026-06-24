@@ -12,13 +12,13 @@ pub struct ExternType {
 	pub fields: Vec<Field>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Field {
 	pub ident: Ident,
 	pub typealt: Type, // type exists in rust already so typealt is used 
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Function {
 	pub path: Path,
 	pub params: Option<Params>, // [] is optional for EBNF
@@ -28,37 +28,37 @@ pub struct Function {
 	pub blocks: Vec<Block>, // entry block + zero or more additional blocks (hence vec)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Params {
 	pub params: Vec<Param>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Param {
 	pub local: Local,
 	pub typealt: Type,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum RetType { // function either returns type or nothing
 	Void,
 	typealt(Type)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Block {
 	pub label: Label, // when Label matches entry, it is the entry block
 	pub stmt: Vec<Stmt>,
 	pub term: Term,	// every block ends with exactly one terminator
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Stmt {
 	pub local: Option<Local>,//lhs
 	pub rhs: Rhs,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Rhs {
 	Use(Local),
 	Const(Literal),
@@ -72,26 +72,26 @@ pub enum Rhs {
 	Call(Path, Option<Args>),	
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Args{
 	pub locals: Vec<Local>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Term{
 	Jump(Label), // name of block to jump to
 	CJump(Local, Label, Label), //local is the condition. Label1 = case true, else label2
 	Return(Option<Local>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type{
 	PrimType(PrimType),
 	Path(Path),// custom type 
 	Ptr(Box<Type>), // https://doc.rust-lang.org/book/ch15-01-box.html#enabling-recursive-types-with-boxes
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PrimType{
 	Bool,
 	I32,
@@ -100,22 +100,22 @@ pub enum PrimType{
 	F64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Path{
 	pub ident: Vec<Ident>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Local{
 	pub ident: Ident, // eg %p 
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Label {
 	pub digits: Vec<Digit>, //3 will produce bb3 
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal{
 	IntegerLiteral(i64), 
 	FloatLiteral(f64),
@@ -124,13 +124,13 @@ pub enum Literal{
 	Null,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UnOp{
 	Neg,
 	Not,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BinOp{
 	Add,
 	Sub,
@@ -147,12 +147,12 @@ pub enum BinOp{
 	Or,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Ident{
 	pub string: String, //variable name like x p or is_neg
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Digit{
 	pub digit: u32,
 }
