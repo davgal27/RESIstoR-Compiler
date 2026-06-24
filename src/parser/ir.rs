@@ -40,7 +40,7 @@ pub struct Param {
 }
 
 #[derive(Debug, Clone)]
-pub enum RetType {
+pub enum RetType { // function either returns type or nothing
 	Void,
 	typealt(Type)
 }
@@ -54,7 +54,7 @@ pub struct Block {
 
 #[derive(Debug, Clone)]
 pub struct Stmt {
-	pub local: Option<Local>,
+	pub local: Option<Local>,//lhs
 	pub rhs: Rhs,
 }
 
@@ -87,7 +87,7 @@ pub enum Term{
 #[derive(Debug, Clone)]
 pub enum Type{
 	PrimType(PrimType),
-	Path(Path),
+	Path(Path),// custom type 
 	Ptr(Box<Type>), // https://doc.rust-lang.org/book/ch15-01-box.html#enabling-recursive-types-with-boxes
 }
 

@@ -30,7 +30,7 @@ pub fn build_cfg(function: &Function) -> Cfg {
             }
 
             Term::Return(_) => {
-                // no edge
+                // return doesnt have edges
             }
         }
     }
