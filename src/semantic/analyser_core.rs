@@ -336,40 +336,6 @@ fn check_statements(program: &Program, symboltable: &SymbolTable) -> Result<(), 
                     Type::Ptr(Box::new(local_type))
                 }
 
-                // load: source is ptr<Type>, rhs type is T
-                Rhs::Load(local) => {
-                    let local_type = symboltable.lookup(local)?;
-                    match local_type {
-                        Type::Ptr(inner_type) => *inner_type,
-                        _ => return Err(format!("load expects a pointer, but got {local_type:?}")),
-                    }
-                }
-
-                Rhs::Store(ptr_local, val_local) => {
-                    if lhs_type.is_some() {
-                        return Err(format!("store does not have a destination local"));
-                    }
-
-                    let ptr_type = symboltable.lookup(ptr_local)?;
-                    let val_type = symboltable.lookup(val_local)?;
-
-                    match ptr_type {
-                        Type::Ptr(inner_type) => {
-                            if *inner_type != val_type {
-                                return Err(format!(
-                                    "store cannot put {val_type:?} into pointer {inner_type:?}"
-                                ));
-                            }
-
-                            continue;
-                        }
-
-                        _ => {
-                            return Err(format!("store destination must be a pointer, got {ptr_type:?}"));
-                        }
-                    }
-                }
-
                 // member_ptr:
                 // 1. operand must have type ptr<P>
                 // 2. P is declared with extern block, 
@@ -417,6 +383,41 @@ fn check_statements(program: &Program, symboltable: &SymbolTable) -> Result<(), 
                     // 4
                     Type::Ptr(Box::new(field_type))
                 }
+                
+                // load: source is ptr<Type>, rhs type is T
+                Rhs::Load(local) => {
+                    let local_type = symboltable.lookup(local)?;
+                    match local_type {
+                        Type::Ptr(inner_type) => *inner_type,
+                        _ => return Err(format!("load expects a pointer, but got {local_type:?}")),
+                    }
+                }
+
+                Rhs::Store(ptr_local, val_local) => {
+                    if lhs_type.is_some() {
+                        return Err(format!("store does not have a destination local"));
+                    }
+
+                    let ptr_type = symboltable.lookup(ptr_local)?;
+                    let val_type = symboltable.lookup(val_local)?;
+
+                    match ptr_type {
+                        Type::Ptr(inner_type) => {
+                            if *inner_type != val_type {
+                                return Err(format!(
+                                    "store cannot put {val_type:?} into pointer {inner_type:?}"
+                                ));
+                            }
+
+                            continue;
+                        }
+
+                        _ => {
+                            return Err(format!("store destination must be a pointer, got {ptr_type:?}"));
+                        }
+                    }
+                }
+
                 // no rhs 
                 Rhs::Call(_, _) => continue,
             };

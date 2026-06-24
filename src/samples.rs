@@ -159,3 +159,130 @@ pub const INVALID_CHARACTERS : &str =
 bla bla nonsense !!! @function $$$
 "
 ;
+
+// semantic invalids ======================================================
+
+pub const SEMANTIC_UNDECLARED_LOCAL: &str =
+"
+function Test::undeclared_local(%a: i32) -> i32 {
+    locals { }
+    entry bb0;
+    bb0:
+        %x = const 1;
+        return %a;
+}
+";
+
+pub const SEMANTIC_DUPLICATE_LABELS: &str =
+"
+function Test::duplicate_labels(%a: i32) -> i32 {
+    locals { }
+    entry bb0;
+    bb0:
+        return %a;
+    bb0:
+        return %a;
+}
+";
+
+pub const SEMANTIC_MISSING_ENTRY_BLOCK: &str =
+"
+function Test::missing_entry_block(%a: i32) -> i32 {
+    locals { }
+    entry bb9;
+    bb0:
+        return %a;
+}
+";
+
+pub const SEMANTIC_MISSING_JUMP_TARGET: &str =
+"
+function Test::missing_jump_target() -> void {
+    locals { }
+    entry bb0;
+    bb0:
+        jump bb9;
+}
+";
+
+pub const SEMANTIC_CJUMP_NON_BOOL: &str =
+"
+function Test::bad_cjump(%a: i32) -> i32 {
+    locals { }
+    entry bb0;
+    bb0:
+        cjump %a, bb1, bb2;
+    bb1:
+        return %a;
+    bb2:
+        return %a;
+}
+";
+
+pub const SEMANTIC_RETURN_TYPE_MISMATCH: &str =
+"
+function Test::bad_return(%a: i32) -> i32 {
+    locals { %b : bool; }
+    entry bb0;
+    bb0:
+        %b = const true;
+        return %b;
+}
+";
+
+pub const SEMANTIC_BAD_BIN_OPERANDS: &str =
+"
+function Test::bad_bin(%a: i32, %b: bool) -> i32 {
+    locals { %r : i32; }
+    entry bb0;
+    bb0:
+        %r = bin add %a, %b;
+        return %r;
+}
+";
+
+pub const SEMANTIC_LOAD_FROM_NON_POINTER: &str =
+"
+function Test::bad_load(%p: i32) -> i32 {
+    locals { %x : i32; }
+    entry bb0;
+    bb0:
+        %x = load %p;
+        return %x;
+}
+";
+
+pub const SEMANTIC_STORE_WRONG_VALUE_TYPE: &str =
+"
+function Test::bad_store(%p: ptr<i32>, %b: bool) -> void {
+    locals { }
+    entry bb0;
+    bb0:
+        store %p, %b;
+        return;
+}
+";
+
+pub const SEMANTIC_MEMBER_PTR_MISSING_FIELD: &str =
+"
+extern type Custom::Struct::Point {
+    x : i32;
+}
+function Test::bad_member_ptr(%p: ptr<Custom::Struct::Point>) -> void {
+    locals { %fp : ptr<i32>; }
+    entry bb0;
+    bb0:
+        %fp = member_ptr %p, y;
+        return;
+}
+";
+
+pub const SEMANTIC_UNDECLARED_CUSTOM_TYPE: &str =
+"
+function Test::undeclared_custom_type() -> void {
+    locals { %p : ptr<Custom::Nope>; }
+    entry bb0;
+    bb0:
+        return;
+}
+";

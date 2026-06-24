@@ -2,6 +2,8 @@ use crate::lexer::lexer_core::produce_tokens;
 use crate::parser::parser_core::Parser;
 use crate::parser::ir::*;
 use super::samples::*;
+use crate::parser::cfg::build_cfg;
+use crate::semantic::analyser_core::analyse;
 
 fn lex(input: &str) -> Result<String, String> {
     let tokens = produce_tokens(input)?;
@@ -20,6 +22,11 @@ fn parse(input: &str) -> Result<Program, String> {
     parser.parse_program()
 }
 
+fn sem_analyse(input: &str) -> Result<bool, String> {
+    let program = parse(input)?;
+    let cfg = build_cfg(&program.function);
+    analyse(&program, &cfg)
+}
 
 // ======================LEXER================================
 
@@ -40,7 +47,7 @@ fn lexer_produces_correct_tokens() {
 
 #[test]
 fn lexer_returns_error_for_bad_characters() {
-    let result = produce_tokens(INVALID_BAD_SYNTAX);
+    let result = produce_tokens(INVALID_CHARACTERS);
 
     assert!(result.is_err());
 
@@ -123,12 +130,83 @@ fn missing_entry_doesnt_parse() {
 }
 
 
+// =========================SEMANTIC ANALYSER=============================
+
 #[test]
-fn bad_syntax_doesnt_parse() {
-    let result = parse(INVALID_BAD_SYNTAX);
-    assert!(result.is_err());
+fn semantic_valid_arithmetic_program_passes() {
+    assert!(sem_analyse(EXAMPLE_ASSIGNMENT_1).is_ok());
 }
 
+#[test]
+fn semantic_valid_member_ptr_program_passes() {
+    assert!(sem_analyse(EXAMPLE_ASSIGNMENT_3).is_ok());
+}
+
+#[test]
+fn semantic_rejects_undeclared_local() {
+    let message = sem_analyse(SEMANTIC_UNDECLARED_LOCAL).unwrap_err();
+    assert!(message.contains("has no type"));
+}
+
+#[test]
+fn semantic_rejects_duplicate_labels() {
+    let message = sem_analyse(SEMANTIC_DUPLICATE_LABELS).unwrap_err();
+    assert!(message.contains("duplicate block label"));
+}
+
+#[test]
+fn semantic_rejects_missing_entry_block() {
+    let message = sem_analyse(SEMANTIC_MISSING_ENTRY_BLOCK).unwrap_err();
+    assert!(message.contains("Entry block does not exist"));
+}
+
+#[test]
+fn semantic_rejects_missing_jump_target() {
+    let message = sem_analyse(SEMANTIC_MISSING_JUMP_TARGET).unwrap_err();
+    assert!(message.contains("targets dont exist"));
+}
+
+#[test]
+fn semantic_rejects_cjump_non_bool() {
+    let message = sem_analyse(SEMANTIC_CJUMP_NON_BOOL).unwrap_err();
+    assert!(message.contains("Cjump"));
+}
+
+#[test]
+fn semantic_rejects_return_type_mismatch() {
+    let message = sem_analyse(SEMANTIC_RETURN_TYPE_MISMATCH).unwrap_err();
+    assert!(message.contains("return type is incorrect"));
+}
+
+#[test]
+fn semantic_rejects_bad_bin_operands() {
+    let message = sem_analyse(SEMANTIC_BAD_BIN_OPERANDS).unwrap_err();
+    assert!(message.contains("expects matching numeric operands"));
+}
+
+#[test]
+fn semantic_rejects_load_from_non_pointer() {
+    let message = sem_analyse(SEMANTIC_LOAD_FROM_NON_POINTER).unwrap_err();
+    assert!(message.contains("load expects a pointer"));
+}
+
+#[test]
+fn semantic_rejects_store_wrong_value_type() {
+    let message = sem_analyse(SEMANTIC_STORE_WRONG_VALUE_TYPE).unwrap_err();
+    assert!(message.contains("store cannot put"));
+}
+
+#[test]
+fn semantic_rejects_member_ptr_missing_field() {
+    let message = sem_analyse(SEMANTIC_MEMBER_PTR_MISSING_FIELD).unwrap_err();
+    assert!(message.contains("does not exist"));
+}
+
+#[test]
+fn semantic_rejects_undeclared_custom_type() {
+    let message = sem_analyse(SEMANTIC_UNDECLARED_CUSTOM_TYPE).unwrap_err();
+    assert!(message.contains("referenced but not declared"));
+}
 
 
 
