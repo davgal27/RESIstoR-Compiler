@@ -131,14 +131,10 @@ fn missing_entry_doesnt_parse() {
 
 
 // =========================SEMANTIC ANALYSER=============================
-
 #[test]
-fn semantic_valid_arithmetic_program_passes() {
+fn semantic_passes_assignment_examples() {
     assert!(sem_analyse(EXAMPLE_ASSIGNMENT_1).is_ok());
-}
-
-#[test]
-fn semantic_valid_member_ptr_program_passes() {
+    assert!(sem_analyse(EXAMPLE_ASSIGNMENT_2).is_ok());
     assert!(sem_analyse(EXAMPLE_ASSIGNMENT_3).is_ok());
 }
 
