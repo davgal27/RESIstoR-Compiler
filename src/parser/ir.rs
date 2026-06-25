@@ -6,7 +6,7 @@ pub struct Program {
 	pub function: Function, //one function per program
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExternType {
 	pub path: Path,
 	pub fields: Vec<Field>,

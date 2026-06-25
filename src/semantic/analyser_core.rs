@@ -404,9 +404,7 @@ fn check_statements(program: &Program, symboltable: &SymbolTable) -> Result<(), 
                     match ptr_type {
                         Type::Ptr(inner_type) => {
                             if *inner_type != val_type {
-                                return Err(format!(
-                                    "store cannot put {val_type:?} into pointer {inner_type:?}"
-                                ));
+                                return Err(format!("store cannot put {val_type:?} into pointer {inner_type:?}"));
                             }
 
                             continue;

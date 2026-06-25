@@ -1,5 +1,86 @@
 use crate::parser::ir::*;
 
+pub fn generate_c(program: &Program, header_name: &str) -> String {
+	let function = &program.function; 
+	let mut c = String::new();// holds whole program
+
+	// INCLUDES============================================
+	let includes = include_includes(program, header_name);
+
+	// FUNCTION SIGNATURE: rettype, name (params) ===========
+	let rettype = match &function.rettype{
+		RetType::Void => format!("void"),
+		RetType::typealt(t) => type_to_c(t),
+	};
+
+	let function_name = pathsepto_(&function.path);
+	
+	// never have I ever regretted how i strucutred the IR more than right now 
+	let mut params_string = String::new();
+	if let Some(params) = &function.params {
+		for p in &params.params {
+			if params_string.is_empty() == false {
+				params_string.push_str(", ");
+			}
+			params_string.push_str(&format!("{} {}", type_to_c(&p.typealt), p.local.ident.string));
+		}
+	}
+	if params_string.is_empty() == true {
+		params_string.push_str("void");
+	}
+
+	// LOCALS =================================================== 
+	//(I couldnt get the grouping of locals to work when pointers got in the mix)
+	let mut locals_string = String::new();
+	for (local, typealt) in &function.locals {
+		locals_string.push_str(&format!("	{} {};\n", type_to_c(typealt), local.ident.string));
+	}
+
+	//ENTRY ===================================================
+	let mut entry_label= String::from("bb");
+	for digit in &function.entry.digits {
+		entry_label.push_str(&digit.digit.to_string());
+	}
+	let entry_string = format!("	goto {};", entry_label);
+
+	// BLOCKS: label, statments, terminator =======================
+	let mut blocks_string = String::new();
+	for block in &function.blocks {
+		let mut label = String::from("bb");
+		for digit in &block.label.digits {
+			label.push_str(&digit.digit.to_string());
+		}
+		let label_string = format!("\n{}:\n", label);
+		blocks_string.push_str(&label_string);
+
+		for stmt in &block.stmt {
+			let stmt_string = format!("    {}\n", convert_ops(stmt));
+			blocks_string.push_str(&stmt_string);
+		}
+
+		let final_string = format!("	{}\n", convert_terminators(&block.term));
+		blocks_string.push_str(&final_string);
+	}
+
+	c.push_str(&includes);
+	c.push('\n');
+	c.push_str(&format!("{} {}({}) {{\n", rettype, function_name, params_string));
+	c.push_str(&locals_string);
+	c.push('\n');
+	c.push_str(&entry_string);
+	c.push('\n');
+	c.push_str(&blocks_string);
+	c.push_str("}\n");
+
+	if function_name != "main" { // this was done to keep the compile command exactly the same as in spec
+    	c.push('\n');
+    	c.push_str("int main(void) {\n");
+    	c.push_str("    return 0;\n");
+    	c.push_str("}\n");
+	}
+	c 
+}
+
 fn type_to_c(typealt: &Type) -> String {
     match typealt {
         Type::PrimType(PrimType::I32) => "int32_t".to_string(),
@@ -15,7 +96,7 @@ fn type_to_c(typealt: &Type) -> String {
 // emit nothing for extern type blocks.
 // in addition to any header that declares the custom struct types and
 // external helpers used by the program.
-fn include_includes(program: &Program) -> String {
+fn include_includes(program: &Program, header_name: &str) -> String {
 
 	// reuse most logic from analyser (custom types declared fn)
 	let mut types_to_check: Vec<&Type> = Vec::new();
@@ -43,7 +124,7 @@ fn include_includes(program: &Program) -> String {
 
         RetType::Void => {}
     }
-    // locals
+    // locals 
     for (_, typealt) in &function.locals {
         types_to_check.push(typealt);
     }
@@ -77,6 +158,9 @@ fn include_includes(program: &Program) -> String {
         	| Type::PrimType(PrimType::U32) => needs_stdint = true,
         	
         	Type::PrimType(PrimType::Bool) => needs_stdbool = true,
+
+        	Type::Path(_) => needs_custom = true,
+
         	_ => {} // no header 
         }
     }
@@ -118,13 +202,14 @@ fn include_includes(program: &Program) -> String {
         to_print.push_str("#include <stddef.h>\n");
     }
     if needs_custom == true {
-    	to_print.push_str("#include \"custom_header.h\"\n");
+    	to_print.push_str(&format!("#include \"{}\"\n", header_name));
     }
     to_print
 }
 
-// 3) :: -> _
+// :: -> _
 fn pathsepto_(path : &Path) -> String {
+	// scuffed way of doing this probably
 	let mut catenated_idents = String::new();
 	let mut lone_idents = Vec::new();
 
@@ -140,11 +225,7 @@ fn pathsepto_(path : &Path) -> String {
 	}
 	catenated_idents
 }
-// 4) pointer operations become ordinary C address. field access. dereference, and assignment operations + any other rhs conversion to C
-// one match over stmt.rhs, all 10 arms. dest prefix "x = " (or "" for store).
-//   use->y  const->lit  cast->(T)y  un->-y/!y  bin->a op b
-//   addr_of->&y  load->*p  store->*p=v  member_ptr->&p->f  call->F(args)
-// helpers: binop_to_c, literal_to_c (Null->NULL, float may need ".0").
+
 
 fn convert_ops(stmt: &Stmt) -> String {
 
@@ -232,14 +313,35 @@ fn convert_ops(stmt: &Stmt) -> String {
 	}
 }
 
+// put the externtype you didint print into the header file custom_header.file 
 
-// ============= label based lowering ===========
+fn convert_terminators(term: &Term) -> String {
+	match term {
+		Term::Jump(label) => {
+			let mut target= String::from("bb");
+			for digit in &label.digits {
+				target.push_str(&digit.digit.to_string());
+			}
+			format!("goto {target};")
+		}
 
-// 5) function shell (generate_c driver)
-// includes -> "ret name(params) {" -> local decls -> "goto entry;" -> blocks -> "}"
-// ret/params/decls all via type_to_c. no symbol table, no Result.
+		Term::CJump(condition, label_one, label_two) => {
+			let mut target_one= String::from("bb");
+			for digit in &label_one.digits {
+				target_one.push_str(&digit.digit.to_string());
+			}
+			let mut target_two= String::from("bb");
+			for digit in &label_two.digits {
+				target_two.push_str(&digit.digit.to_string());
+			}
 
-// 6) basic blocks
-// per block: "bbN:" -> statements (section 4) -> terminator.
-//   jump->goto  cjump->if(c) goto t; else goto f;  return->return x;/return;
-// label_to_c must match between labels and gotos.
+			format!("if ({}) goto {}; else goto {};", condition.ident.string, target_one, target_two)
+		}
+
+		Term::Return(local) => match local {
+			Some(local) => format!("return {};", local.ident.string),
+			None => format!("return;"),
+		},
+	}
+
+}
