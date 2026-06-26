@@ -110,7 +110,7 @@ pub struct Local{
 	pub ident: Ident, // eg %p 
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Label {
 	pub digits: Vec<Digit>, //3 will produce bb3 
 }
@@ -152,7 +152,7 @@ pub struct Ident{
 	pub string: String, //variable name like x p or is_neg
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Digit{
 	pub digit: u32,
 }

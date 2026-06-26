@@ -286,3 +286,80 @@ function Test::undeclared_custom_type() -> void {
         return;
 }
 ";
+
+
+// task 5 analysis ======================================================
+
+pub const TASK5_UNREACHABLE_BLOCK: &str =
+"
+function Test::unreachable(%a: i32) -> i32 {
+    locals {
+        %x : i32;
+    }
+    entry bb0;
+
+    bb0:
+        return %a;
+
+    bb1:
+        %x = const 1;
+        return %x;
+}
+";
+
+pub const TASK5_ALL_REACHABLE: &str =
+"
+function Test::all_reachable(%a: i32) -> i32 {
+    locals {
+        %x : i32;
+    }
+    entry bb0;
+
+    bb0:
+        jump bb1;
+
+    bb1:
+        %x = const 1;
+        return %x;
+}
+";
+
+pub const TASK5_BRANCH_ALL_REACHABLE: &str =
+"
+function Test::branch_all_reachable(%a: i32, %cond: bool) -> i32 {
+    locals { }
+    entry bb0;
+
+    bb0:
+        cjump %cond, bb1, bb2;
+
+    bb1:
+        return %a;
+
+    bb2:
+        return %a;
+}
+";
+
+pub const TASK5_BRANCH_WITH_DEAD_BLOCK: &str =
+"
+function Test::branch_with_dead(%a: i32, %cond: bool) -> i32 {
+    locals {
+        %x : i32;
+    }
+    entry bb0;
+
+    bb0:
+        cjump %cond, bb1, bb2;
+
+    bb1:
+        return %a;
+
+    bb2:
+        return %a;
+
+    bb3:
+        %x = const 99;
+        return %x;
+}
+";

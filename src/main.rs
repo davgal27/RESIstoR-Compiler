@@ -3,6 +3,7 @@ pub mod parser;
 pub mod lexer;
 pub mod semantic; 
 pub mod codegen;
+pub mod datalog;
 
 use std::process;
 use std::fs;

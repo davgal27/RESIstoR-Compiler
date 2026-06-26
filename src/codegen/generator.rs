@@ -22,7 +22,14 @@ pub fn generate_c(program: &Program, header_name: &str) -> String {
 			if params_string.is_empty() == false {
 				params_string.push_str(", ");
 			}
-			params_string.push_str(&format!("{} {}", type_to_c(&p.typealt), p.local.ident.string));
+			match &p.typealt {
+			    Type::Ptr(_) => {
+			        params_string.push_str(&format!("{}{}", type_to_c(&p.typealt), p.local.ident.string));
+			    }
+			    _ => {
+			        params_string.push_str(&format!("{} {}", type_to_c(&p.typealt), p.local.ident.string));
+			    }
+			}
 		}
 	}
 	if params_string.is_empty() == true {
@@ -33,7 +40,14 @@ pub fn generate_c(program: &Program, header_name: &str) -> String {
 	//(I couldnt get the grouping of locals to work when pointers got in the mix)
 	let mut locals_string = String::new();
 	for (local, typealt) in &function.locals {
-		locals_string.push_str(&format!("	{} {};\n", type_to_c(typealt), local.ident.string));
+		match typealt {
+	    Type::Ptr(_) => {
+		        locals_string.push_str(&format!("	{}{};\n", type_to_c(typealt), local.ident.string));
+		    }
+		    _ => {
+		        locals_string.push_str(&format!("	{} {};\n", type_to_c(typealt), local.ident.string));
+		    }
+		}
 	}
 
 	//ENTRY ===================================================

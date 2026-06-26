@@ -4,6 +4,7 @@ use crate::parser::ir::*;
 use super::samples::*;
 use crate::parser::cfg::build_cfg;
 use crate::semantic::analyser_core::analyse;
+use crate::datalog::datalog_analyser::get_unreachables;
 
 fn lex(input: &str) -> Result<String, String> {
     let tokens = produce_tokens(input)?;
@@ -205,10 +206,51 @@ fn semantic_rejects_undeclared_custom_type() {
 }
 
 
+// ========================= DATALOG UNREACHABLE BLOCK ANALYSIS====================
 
+// =========================TASK 5: UNREACHABLE BLOCK ANALYSIS=============================
 
+#[test]
+fn task5_detects_unreachable_block() {
+    let program = parse(TASK5_UNREACHABLE_BLOCK).expect("program should parse");
+    let cfg = build_cfg(&program.function);
 
+    let unreachable = get_unreachables(&cfg);
 
+    assert_eq!(unreachable.len(), 1);
+    assert_eq!(unreachable[0].label.digits[0].digit, 1);
+}
+
+#[test]
+fn task5_returns_empty_when_all_blocks_reachable() {
+    let program = parse(TASK5_ALL_REACHABLE).expect("program should parse");
+    let cfg = build_cfg(&program.function);
+
+    let unreachable = get_unreachables(&cfg);
+
+    assert!(unreachable.is_empty());
+}
+
+#[test]
+fn task5_branch_all_reachable() {
+    let program = parse(TASK5_BRANCH_ALL_REACHABLE).expect("program should parse");
+    let cfg = build_cfg(&program.function);
+
+    let unreachable = get_unreachables(&cfg);
+
+    assert!(unreachable.is_empty());
+}
+
+#[test]
+fn task5_branch_with_dead_block() {
+    let program = parse(TASK5_BRANCH_WITH_DEAD_BLOCK).expect("program should parse");
+    let cfg = build_cfg(&program.function);
+
+    let unreachable = get_unreachables(&cfg);
+
+    assert_eq!(unreachable.len(), 1);
+    assert_eq!(unreachable[0].label.digits[0].digit, 3);
+}
 
 
 
