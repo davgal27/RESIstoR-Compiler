@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{nystrom2021crafting}
+Robert Nystrom.
+\newblock {\em Crafting Interpreters}.
+\newblock Genever Benning, 2021.
+
+\bibitem{reps1998maximalmunch}
+Thomas Reps.
+\newblock ``maximal-munch'' tokenization in linear time.
+\newblock {\em ACM Transactions on Programming Languages and Systems},
+  20(2):259--273, 1998.
+
+\bibitem{rustdoc}
+{The Rust Project Developers}.
+\newblock The rust programming language.
+\newblock \url{https://doc.rust-lang.org/book/}, 2024.
+\newblock Accessed: 2026-06-26.
+
+\end{thebibliography}

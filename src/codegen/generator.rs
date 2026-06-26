@@ -98,12 +98,16 @@ pub fn generate_c(program: &Program, header_name: &str, unreachable_blocks: &Vec
 	c.push_str(&blocks_string);
 	c.push_str("}\n");
 
-	// if function_name != "main" { // this was done to keep the compile command exactly the same as in spec
-    // 	c.push('\n');
-    // 	c.push_str("int main(void) {\n");
-    // 	c.push_str("    return 0;\n");
-    // 	c.push_str("}\n");
-	// }
+	if function_name != "main" {
+    c.push('\n');
+    c.push_str("#if defined(__GNUC__)\n");
+    c.push_str("__attribute__((weak))\n");
+    c.push_str("#endif\n");
+    c.push_str("int main(void) {\n");
+    c.push_str("    return 0;\n");
+    c.push_str("}\n");
+	}
+
 	c 
 }
 
@@ -338,8 +342,6 @@ fn convert_ops(stmt: &Stmt) -> String {
 		Rhs::Store(local_one, local_two) => format!("*{} = {};", local_one.ident.string, local_two.ident.string)
 	}
 }
-
-// put the externtype you didint print into the header file custom_header.file 
 
 fn convert_terminators(term: &Term) -> String {
 	match term {

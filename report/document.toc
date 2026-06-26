@@ -1,0 +1,68 @@
+\contentsline {chapter}{\numberline {1}Project Overview}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Aim}{3}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Pipeline}{3}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Repository Layout}{3}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Running and Testing the Compiler}{4}{section.1.4}%
+\contentsline {chapter}{\numberline {2}Lexical Analysis}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Task Overview}{5}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Design}{5}{section.2.2}%
+\contentsline {paragraph}{A table driven approach:}{5}{paragraph*.2}%
+\contentsline {paragraph}{Maximal Munch}{5}{paragraph*.3}%
+\contentsline {paragraph}{Batch model}{5}{paragraph*.4}%
+\contentsline {section}{\numberline {2.3}Main Functions}{7}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Error Handling}{7}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Testing}{7}{section.2.5}%
+\contentsline {chapter}{\numberline {3}Syntax Analysis}{8}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Task Overview}{8}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Internal Representation}{8}{subsection.3.1.1}%
+\contentsline {section}{\numberline {3.2}Design}{8}{section.3.2}%
+\contentsline {paragraph}{A recursive descent parser:}{8}{paragraph*.6}%
+\contentsline {paragraph}{Navigation helpers}{9}{paragraph*.7}%
+\contentsline {paragraph}{Lookahead}{9}{paragraph*.8}%
+\contentsline {paragraph}{A separate CFG}{9}{paragraph*.9}%
+\contentsline {section}{\numberline {3.3}Error Handling}{10}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Testing}{10}{section.3.4}%
+\contentsline {chapter}{\numberline {4}Semantic Analysis}{11}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Task Overview}{11}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Checks Implemented}{11}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Design}{11}{section.4.3}%
+\contentsline {paragraph}{A symbol table:}{11}{paragraph*.10}%
+\contentsline {paragraph}{Smaller checks over a big one}{12}{paragraph*.11}%
+\contentsline {paragraph}{Type checking statements}{12}{paragraph*.12}%
+\contentsline {paragraph}{Using the CFG}{12}{paragraph*.13}%
+\contentsline {section}{\numberline {4.4}Error Handling}{13}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Testing}{13}{section.4.5}%
+\contentsline {chapter}{\numberline {5}Code Generation}{14}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Task Overview}{14}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Design}{14}{section.5.2}%
+\contentsline {paragraph}{Label-based generated code}{14}{paragraph*.14}%
+\contentsline {paragraph}{Conditional includes}{14}{paragraph*.15}%
+\contentsline {paragraph}{A standalone entry point}{14}{paragraph*.16}%
+\contentsline {paragraph}{Consuming the analysis}{14}{paragraph*.17}%
+\contentsline {section}{\numberline {5.3}Main Functions}{15}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Type Mapping}{15}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Operation Lowering}{15}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Testing}{16}{section.5.6}%
+\contentsline {chapter}{\numberline {6}Program Analysis with Ascent}{17}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Task Overview}{17}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Design}{17}{section.6.2}%
+\contentsline {paragraph}{Ascent}{17}{paragraph*.18}%
+\contentsline {paragraph}{Facts and rules}{17}{paragraph*.19}%
+\contentsline {paragraph}{Producing the Set of Unreachable Blocks}{17}{paragraph*.20}%
+\contentsline {paragraph}{Output Consumable by the compiler}{17}{paragraph*.21}%
+\contentsline {section}{\numberline {6.3}Testing}{18}{section.6.3}%
+\contentsline {chapter}{\numberline {7}Concluding Notes}{19}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Limitations}{19}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Future Improvement}{19}{section.7.2}%
+\contentsline {section}{\numberline {7.3}A Note on Rust for Compiler Construction}{19}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Deviations from the Supplied grammar}{19}{section.7.4}%
+\contentsline {chapter}{\numberline {A}Sample ResIR Inputs}{21}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Assignment Example 1}{21}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Assignment Example 2}{21}{section.A.2}%
+\contentsline {section}{\numberline {A.3}Assignment Example 3}{22}{section.A.3}%
+\contentsline {chapter}{\numberline {B}Generated C Outputs}{23}{appendix.B}%
+\contentsline {section}{\numberline {B.1}Assignment Example 1}{23}{section.B.1}%
+\contentsline {section}{\numberline {B.2}Assignment Example 2}{23}{section.B.2}%
+\contentsline {section}{\numberline {B.3}Assignment Example 3}{24}{section.B.3}%
+\contentsline {chapter}{\numberline {C}Full Test Harness Output}{25}{appendix.C}%
+\contentsline {chapter}{\numberline {D}output\_checker.c used in video}{26}{appendix.D}%

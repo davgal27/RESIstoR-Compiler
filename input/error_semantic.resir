@@ -1,0 +1,13 @@
+function Bad::semantic(%a: i32) -> i32 {
+    locals { }
+    entry bb0;
+
+    bb0:
+        cjump %a, bb1, bb2;
+
+    bb1:
+        return %a;
+
+    bb2:
+        return %a;
+}

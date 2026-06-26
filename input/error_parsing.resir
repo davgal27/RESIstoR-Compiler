@@ -1,0 +1,6 @@
+function Bad::parse() -> void {
+    locals { }
+    entry bb0
+    bb0:
+        return;
+}

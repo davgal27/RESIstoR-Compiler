@@ -39,6 +39,22 @@ pub const QUICK_LEXER: &[(&str, &str)] = &[
 
     ("ptr<i32> Custom::Struct::Point bb3:",
         "[Ptr, LessThan, I32, GreaterThan, Identifier, PathSep, Identifier, PathSep, Identifier, Label, Colon, EndOfFile]"),
+
+    // keyword, not identifier
+    ("function",
+        "[Function, EndOfFile]"),
+
+    // bb0 is a label, bare bb is an identifier
+    ("bb0 bb",
+        "[Label, Identifier, EndOfFile]"),
+
+    // float literal
+    ("12.34",
+        "[FloatLiteral, EndOfFile]"),
+
+    // boolean / null literals
+    ("true false null",
+        "[True, False, Null, EndOfFile]"),
 ];
 
 #[test]

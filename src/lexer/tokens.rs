@@ -82,16 +82,16 @@ pub enum TokenKind {
 	
 }
 
-//=============DISPLAY FOR TESTING=============== 
-impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Token Kind: {:<12} Lexeme: {:<25} Line: {:<3} Col: {:<3}",
-            format!("{:?}", self.token_kind),
-            self.token_attribute.lexeme,
-            self.token_attribute.line,
-            self.token_attribute.col
-        )
-    }
-}
+// //=============DISPLAY FOR TESTING=============== 
+// impl fmt::Display for Token {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(
+//             f,
+//             "Token Kind: {:<12} Lexeme: {:<25} Line: {:<3} Col: {:<3}",
+//             format!("{:?}", self.token_kind),
+//             self.token_attribute.lexeme,
+//             self.token_attribute.line,
+//             self.token_attribute.col
+//         )
+//     }
+// }
