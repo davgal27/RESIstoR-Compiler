@@ -5,6 +5,8 @@ use super::samples::*;
 use crate::parser::cfg::build_cfg;
 use crate::semantic::analyser_core::analyse;
 use crate::datalog::datalog_analyser::get_unreachables;
+use crate::generate_c;
+
 
 fn lex(input: &str) -> Result<String, String> {
     let tokens = produce_tokens(input)?;
@@ -208,8 +210,6 @@ fn semantic_rejects_undeclared_custom_type() {
 
 // ========================= DATALOG UNREACHABLE BLOCK ANALYSIS====================
 
-// =========================TASK 5: UNREACHABLE BLOCK ANALYSIS=============================
-
 #[test]
 fn task5_detects_unreachable_block() {
     let program = parse(TASK5_UNREACHABLE_BLOCK).expect("program should parse");
@@ -252,9 +252,34 @@ fn task5_branch_with_dead_block() {
     assert_eq!(unreachable[0].label.digits[0].digit, 3);
 }
 
+#[test]
+fn task5_removed_block_is_not_in_generated_c() {
+    let program = parse(TASK5_BRANCH_WITH_DEAD_BLOCK).expect("program should parse");
+    let cfg = build_cfg(&program.function);
 
+    let unreachable = get_unreachables(&cfg);
+    let c_code = generate_c(&program, "custom_header.h", &unreachable);
 
+    assert_eq!(unreachable.len(), 1);
 
+    // bb3 is the unreachable block in this sample
+    assert!(!c_code.contains("bb3:"));
+}
+
+#[test]
+fn task5_keeps_reachable_blocks_in_generated_c() {
+    let program = parse(TASK5_BRANCH_WITH_DEAD_BLOCK).expect("program should parse");
+    let cfg = build_cfg(&program.function);
+
+    let unreachable = get_unreachables(&cfg);
+    let c_code = generate_c(&program, "custom_header.h", &unreachable);
+
+    assert!(c_code.contains("bb0:"));
+    assert!(c_code.contains("bb1:"));
+    assert!(c_code.contains("bb2:"));
+
+    assert!(!c_code.contains("bb3:"));
+}
 
 // JIPPITY TESTS 
 

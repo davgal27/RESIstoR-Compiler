@@ -1,6 +1,6 @@
 use crate::parser::ir::*;
 
-pub fn generate_c(program: &Program, header_name: &str) -> String {
+pub fn generate_c(program: &Program, header_name: &str, unreachable_blocks: &Vec<Block>) -> String {
 	let function = &program.function; 
 	let mut c = String::new();// holds whole program
 
@@ -59,7 +59,19 @@ pub fn generate_c(program: &Program, header_name: &str) -> String {
 
 	// BLOCKS: label, statments, terminator =======================
 	let mut blocks_string = String::new();
+
 	for block in &function.blocks {
+		// analysis consumption
+		let mut is_unreachable = false;
+		for unreachable in unreachable_blocks {
+			if unreachable.label == block.label {
+				is_unreachable = true;
+			}
+		}
+		if is_unreachable == true {
+			continue; //ignore it 
+		}
+
 		let mut label = String::from("bb");
 		for digit in &block.label.digits {
 			label.push_str(&digit.digit.to_string());

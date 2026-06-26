@@ -1,0 +1,19 @@
+function Test::branch_with_dead(%a: i32, %cond: bool) -> i32 {
+    locals {
+        %x : i32;
+    }
+    entry bb0;
+
+    bb0:
+        cjump %cond, bb1, bb2;
+
+    bb1:
+        return %a;
+
+    bb2:
+        return %a;
+
+    bb3:
+        %x = const 99;
+        return %x;
+}

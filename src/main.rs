@@ -14,6 +14,7 @@ use crate::parser::cfg::build_cfg;
 use crate::semantic::analyser_core::analyse;
 use crate::codegen::generator;
 use crate::codegen::generator::generate_c;
+use crate::datalog::datalog_analyser::get_unreachables;
 
 
 #[cfg(test)]
@@ -21,7 +22,10 @@ mod test;
 mod samples;
 
 fn main() {
+    println!();
+    println!("=========================================================");
     println!("CPS2000 2026 Assignment: Compiler theory and Practice");
+    println!("Student: Dave Galea 0283404L");
     println!();
     println!("This program compiles resir source code into C");
     println!();
@@ -93,7 +97,13 @@ fn main() {
     }
 
     // CODEGEN =============================================
-    let c_code = generate_c(&program, header_name);
+    let unreachable_blocks = get_unreachables(&cfg);
+    if unreachable_blocks.is_empty() {
+        println!("Datalog analysis detected no unreachable blocks. Good job.\n");
+    } else {
+        println!("Datalog analysis eliminated {} unreachable block/s\n", unreachable_blocks.len());
+    }
+    let c_code = generate_c(&program, header_name, &unreachable_blocks);
 
     match fs::write(output_path, c_code) {
         Ok(_) => {}
