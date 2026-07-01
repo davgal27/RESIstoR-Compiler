@@ -1,5 +1,3 @@
-# ResIR Compiler
-
 A compiler pipeline for **ResIR**, a small intermediate representation. Built in Rust for CPS2000 - Compiler Theory and Practice.
 
 ## Usage
